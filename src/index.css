@@ -1,3 +1,29 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.glow {
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.7), 0 0 20px rgba(59, 130, 246, 0.5);
+}
+
+@media (max-width: 640px) {
+  .feature-set {
+    flex-direction: column;
+  }
+  .card-left,
+  .card-right {
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+  .vertical-line {
+    display: true;
+  }
+}
+
+.card-left, .card-right {
+  opacity: 1;
+}
+
+.vertical-line {
+  opacity: 1;
+}

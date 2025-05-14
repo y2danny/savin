@@ -1,22 +1,20 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, LogIn, LogOut } from 'lucide-react';
-import { UserButton, useUser } from "@civic/auth-web3/react";
+import { Link } from 'react-router-dom';
+import { useUser } from "@civic/auth-web3/react";
 import { useAjoStore } from '../store/ajoStore';
+import { User } from 'lucide-react';
 import Button from './ui/Button';
 import logo from '../assets/logo.png';
 
 const Navbar: React.FC = () => {
-  const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
-  const { user, signIn, signOut } = useUser();
+  const { user: civicUser, signIn, signOut } = useUser();
   const { setAuthenticated } = useAjoStore();
 
   const handleSignIn = async () => {
     try {
       await signIn();
       setAuthenticated(true);
-      console.log('Sign in successful');
     } catch (error) {
       console.error('Sign in failed:', error);
     }
@@ -26,8 +24,6 @@ const Navbar: React.FC = () => {
     try {
       await signOut();
       setAuthenticated(false);
-      console.log('Sign out successful');
-      navigate('/');
     } catch (error) {
       console.error('Sign out failed:', error);
     }
@@ -48,7 +44,7 @@ const Navbar: React.FC = () => {
       setMobileMenuOpen(false);
     }
   };
-  
+
   return (
     <nav className="bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -85,41 +81,34 @@ const Navbar: React.FC = () => {
               </Link>
             </div>
 
-            {/* Auth Buttons */}
-            <div className="hidden sm:flex sm:items-center space-x-4">
-              {!user ? (
-                <Button
-                  size="sm"
-                  onClick={handleSignIn}
-                  icon={<LogIn size={16} />}
-                >
+            {/* Replace Lucide icons with text buttons */}
+            <div className="hidden sm:flex sm:items-center">
+              {!civicUser ? (
+                <Button onClick={handleSignIn}>
                   Sign In
                 </Button>
               ) : (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleSignOut}
-                  icon={<LogOut size={16} />}
-                >
-                  Sign Out
-                </Button>
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={handleSignOut}
+                  >
+                    Sign Out
+                  </Button>
+                </>
               )}
             </div>
 
             {/* Mobile menu button */}
-            <div className="flex sm:hidden">
-              <button
-                onClick={toggleMobileMenu}
-                className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none"
-              >
-                {mobileMenuOpen ? (
-                  <X className="block h-6 w-6" />
-                ) : (
-                  <Menu className="block h-6 w-6" />
-                )}
-              </button>
-            </div>
+            <button
+              onClick={toggleMobileMenu}
+              className="sm:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none"
+            >
+              <span className="sr-only">
+                {mobileMenuOpen ? 'Close menu' : 'Open menu'}
+              </span>
+              {mobileMenuOpen ? '✕' : '☰'}
+            </button>
           </div>
         </div>
       </div>
@@ -153,11 +142,10 @@ const Navbar: React.FC = () => {
               About
             </Link>
             <div className="px-4 py-2">
-              {!user ? (
+              {!civicUser ? (
                 <Button
                   fullWidth
                   onClick={handleSignIn}
-                  icon={<LogIn size={16} />}
                 >
                   Sign In
                 </Button>
@@ -166,7 +154,6 @@ const Navbar: React.FC = () => {
                   fullWidth
                   variant="outline"
                   onClick={handleSignOut}
-                  icon={<LogOut size={16} />}
                 >
                   Sign Out
                 </Button>

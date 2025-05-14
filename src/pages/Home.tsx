@@ -1,15 +1,55 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UsersRound, Landmark, Bell, BarChart, Share2, Shield, Users, Wallet, CheckCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import Button from '../components/ui/Button';
-import { useAjoStore } from '../store/ajoStore';
 import { useAuth } from '../hooks/useAuth';
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [openFaq, setOpenFaq] = React.useState<number | null>(null);
   const [showAuthModal, setShowAuthModal] = React.useState(false);
+  const [typingText, setTypingText] = useState('Everyone');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [textIndex, setTextIndex] = useState(0);
+
+  const words = ['YOU', 'ME', 'EVERYONE'];
+
+  useEffect(() => {
+    const handleTyping = () => {
+      const currentWord = words[textIndex];
+      const shouldDelete = isDeleting;
+      
+      if (!shouldDelete && typingText === currentWord) {
+        // Pause before starting to delete
+        setTimeout(() => setIsDeleting(true), 1500);
+        return;
+      }
+      
+      if (shouldDelete && typingText === '') {
+        setIsDeleting(false);
+        setTextIndex((prev) => (prev + 1) % words.length);
+        return;
+      }
+
+      const delta = shouldDelete ? -1 : 1;
+      setTypingText(currentWord.substring(0, typingText.length + delta));
+    };
+
+    const timer = setTimeout(handleTyping, isDeleting ? 50 : 150);
+    return () => clearTimeout(timer);
+  }, [typingText, isDeleting, textIndex]);
+
+  useEffect(() => {
+    // Empty useEffect for now
+    return () => {
+      // Cleanup if needed
+    };
+  }, []);
 
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);
@@ -25,13 +65,38 @@ const Home: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Auth Modal */}
+      {showAuthModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4 shadow-lg">
+            <div className="flex flex-col items-center">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Sign In Required</h2>
+              <p className="text-gray-600 mb-6 text-center">
+                Please sign in to create or join an Ajo group.<br />
+                If you don't have an account, you can sign up for free.
+              </p>
+              <Button 
+                variant="outline"
+                onClick={() => setShowAuthModal(false)}
+                className="w-full"
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Hero Section */}
       <div className="bg-gradient-to-b from-purple-700 to-purple-800 text-white py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="lg:grid lg:grid-cols-2 lg:gap-8 items-center">
             <div>
               <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl mb-6">
-                Modern Rotating Savings for Everyone
+                Modern Rotating Savings for{' '}
+                <span className="text-purple-300 inline-block min-w-[200px]">
+                  {typingText}
+                </span>
               </h1>
               <p className="text-lg sm:text-xl text-purple-100 mb-8">
                 AjoSave brings the traditional rotating savings concept into the digital age. 
@@ -80,7 +145,7 @@ const Home: React.FC = () => {
       <div className="my-16 border-t border-gray-200" />
 
       {/* Features Section */}
-      <div id="features" className="py-12 bg-white">
+      <section id="features" className="py-12 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
@@ -90,40 +155,90 @@ const Home: React.FC = () => {
               A simple, transparent approach to community savings
             </p>
           </div>
-          
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-gray-50 p-6 rounded-lg">
-              <div className="w-12 h-12 bg-purple-100 text-purple-700 rounded-full flex items-center justify-center mb-4">
-                <span className="text-xl font-bold">1</span>
+
+          {/* Feature Sets */}
+          <div className="space-y-16">
+            {/* Set 1 */}
+            <div className="feature-set flex items-center justify-between relative">
+              {/* Left Card */}
+              <div className="card-left w-5/12 bg-gray-50 p-6 rounded-lg">
+                <div className="w-12 h-12 bg-purple-100 text-purple-700 rounded-full flex items-center justify-center mb-4">
+                  <span className="text-xl font-bold">1</span>
+                </div>
+                <h3 className="text-lg font-semibold mb-2">Create or Join</h3>
+                <p className="text-gray-600">
+                  Start your own Ajo group or join an existing one using a group code.
+                </p>
               </div>
-              <h3 className="text-lg font-semibold mb-2">Create or Join</h3>
-              <p className="text-gray-600">
-                Start your own Ajo group or join an existing one using a group code.
-              </p>
+
+              {/* Vertical Glowing Line */}
+              <div className="vertical-line absolute left-1/2 transform -translate-x-1/2 w-1 h-32 bg-gradient-to-b from-purple-400 to-blue-500 rounded-full glow"></div>
+
+              {/* Right Card (Code Block) */}
+              <div className="card-right w-5/12 bg-gray-50 p-6 rounded-lg">
+                <pre className="bg-gray-800 text-white p-4 rounded-md text-sm">
+                  <code>
+                    {`// Join an Ajo group
+const group = await savin.joinGroup({
+  code: "AJO123",
+  userId: "user_Tunde"
+});`}
+                  </code>
+                </pre>
+              </div>
             </div>
-            
-            <div className="bg-gray-50 p-6 rounded-lg">
-              <div className="w-12 h-12 bg-purple-100 text-purple-700 rounded-full flex items-center justify-center mb-4">
-                <span className="text-xl font-bold">2</span>
+
+            {/* Set 2 */}
+            <div className="feature-set flex items-center justify-between relative">
+              {/* Left Card */}
+              <div className="card-left w-5/12 bg-gray-50 p-6 rounded-lg">
+                <div className="w-12 h-12 bg-purple-100 text-purple-700 rounded-full flex items-center justify-center mb-4">
+                  <span className="text-xl font-bold">2</span>
+                </div>
+                <h3 className="text-lg font-semibold mb-2">Make Contributions</h3>
+                <p className="text-gray-600">
+                  Contribute a fixed amount at regular intervals (weekly, biweekly, or monthly).
+                </p>
               </div>
-              <h3 className="text-lg font-semibold mb-2">Make Contributions</h3>
-              <p className="text-gray-600">
-                Contribute a fixed amount at regular intervals (weekly, biweekly, or monthly).
-              </p>
+
+              {/* Vertical Glowing Line */}
+              <div className="vertical-line absolute left-1/2 transform -translate-x-1/2 w-1 h-32 bg-gradient-to-b from-purple-400 to-blue-500 rounded-full glow"></div>
+
+              {/* Right Card (Text) */}
+              <div className="card-right w-5/12 bg-gray-50 p-6 rounded-lg">
+                <h3 className="text-lg font-semibold mb-2">Flexible Scheduling</h3>
+                <p className="text-gray-600">
+                  Choose a contribution schedule that works for you and your group.
+                </p>
+              </div>
             </div>
-            
-            <div className="bg-gray-50 p-6 rounded-lg">
-              <div className="w-12 h-12 bg-purple-100 text-purple-700 rounded-full flex items-center justify-center mb-4">
-                <span className="text-xl font-bold">3</span>
+
+            {/* Set 3 */}
+            <div className="feature-set flex items-center justify-between relative">
+              {/* Left Card */}
+              <div className="card-left w-5/12 bg-gray-50 p-6 rounded-lg">
+                <div className="w-12 h-12 bg-purple-100 text-purple-700 rounded-full flex items-center justify-center mb-4">
+                  <span className="text-xl font-bold">3</span>
+                </div>
+                <h3 className="text-lg font-semibold mb-2">Receive Payouts</h3>
+                <p className="text-gray-600">
+                  When it's your turn, receive the full pot in Naira, Solana, or USDT.
+                </p>
               </div>
-              <h3 className="text-lg font-semibold mb-2">Receive Payouts</h3>
-              <p className="text-gray-600">
-                When it's your turn, receive the full pot from all members' contributions in Naira, Solana or USDT.
-              </p>
+
+              {/* Vertical Glowing Line */}
+              <div className="vertical-line absolute left-1/2 transform -translate-x-1/2 w-1 h-32 bg-gradient-to-b from-purple-400 to-blue-500 rounded-full glow"></div>
+
+              {/* Right Card (Visual) */}
+              <div className="card-right w-5/12 bg-gray-50 p-6 rounded-lg">
+                <div className="h-24 bg-gradient-to-r from-purple-400 to-blue-500 rounded-md flex items-center justify-center text-white font-semibold">
+                  Payout in Crypto or Fiat
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Divider */}
       <div className="my-8 border-t border-gray-200" />
@@ -141,44 +256,56 @@ const Home: React.FC = () => {
           </div>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center mb-4">
-                <Shield size={24} />
+            <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 relative group">
+              <div className="absolute inset-0 rounded-xl border-2 border-transparent group-hover:border-purple-500/50 group-hover:shadow-[0_0_15px_rgba(139,92,246,0.3)] transition-all duration-300"></div>
+              <div className="relative z-10">
+                <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center mb-4">
+                  <Shield size={24} />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">No Missed Turns</h3>
+                <p className="text-gray-600">
+                  Automated scheduling ensures everyone gets their turn at the right time.
+                </p>
               </div>
-              <h3 className="text-lg font-semibold mb-2">No Missed Turns</h3>
-              <p className="text-gray-600">
-                Automated scheduling ensures everyone gets their turn at the right time.
-              </p>
             </div>
             
-            <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center mb-4">
-                <BarChart size={24} />
+            <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 relative group">
+              <div className="absolute inset-0 rounded-xl border-2 border-transparent group-hover:border-purple-500/50 group-hover:shadow-[0_0_15px_rgba(139,92,246,0.3)] transition-all duration-300"></div>
+              <div className="relative z-10">
+                <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center mb-4">
+                  <BarChart size={24} />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">Auto-tracking</h3>
+                <p className="text-gray-600">
+                  Keep track of all contributions and payouts automatically.
+                </p>
               </div>
-              <h3 className="text-lg font-semibold mb-2">Auto-tracking</h3>
-              <p className="text-gray-600">
-                Keep track of all contributions and payouts automatically.
-              </p>
             </div>
             
-            <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center mb-4">
-                <Share2 size={24} />
+            <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 relative group">
+              <div className="absolute inset-0 rounded-xl border-2 border-transparent group-hover:border-purple-500/50 group-hover:shadow-[0_0_15px_rgba(139,92,246,0.3)] transition-all duration-300"></div>
+              <div className="relative z-10">
+                <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center mb-4">
+                  <Share2 size={24} />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">Easy Invites</h3>
+                <p className="text-gray-600">
+                  Invite members to your group with a simple shareable link.
+                </p>
               </div>
-              <h3 className="text-lg font-semibold mb-2">Easy Invites</h3>
-              <p className="text-gray-600">
-                Invite members to your group with a simple shareable link.
-              </p>
             </div>
             
-            <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center mb-4">
-                <Bell size={24} />
+            <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 relative group">
+              <div className="absolute inset-0 rounded-xl border-2 border-transparent group-hover:border-purple-500/50 group-hover:shadow-[0_0_15px_rgba(139,92,246,0.3)] transition-all duration-300"></div>
+              <div className="relative z-10">
+                <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center mb-4">
+                  <Bell size={24} />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">Built-in Reminders</h3>
+                <p className="text-gray-600">
+                  Never miss a contribution with automated payment reminders.
+                </p>
               </div>
-              <h3 className="text-lg font-semibold mb-2">Built-in Reminders</h3>
-              <p className="text-gray-600">
-                Never miss a contribution with automated payment reminders.
-              </p>
             </div>
           </div>
         </div>
